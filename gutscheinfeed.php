@@ -206,7 +206,7 @@ if($_POST){
 ?>	
 <div class="wrap">
 <h2>Gutscheinfeed Weiterleitungen</h2>
-<p>Damit Sie mit dem Gutscheinfeed.com Plugin Geld verdienen, müssen Sie hier Affiliate-Links für die jeweiligen Anbieter hinterlegen. Beim Einlösen eines Gutscheins wird zu etwa 50% der von Ihnen hinterlegte Link verwendet, falls kein Link hinterlegt ist wird automatisch die Weiterleitung über Gutscheinfeed.com veranlaßt.</p>
+<p>Damit Sie mit dem Gutscheinfeed.com Plugin Geld verdienen, müssen Sie hier Affiliate-Links für die jeweiligen Anbieter hinterlegen. Beim Einlösen eines Gutscheins wird zu etwa 20% der von Ihnen hinterlegte Link verwendet, falls kein Link hinterlegt ist wird automatisch die Weiterleitung über Gutscheinfeed.com veranlaßt.</p>
 <h3>Anbieter bei denen noch kein Link hinterlegt ist:</h3>
 <form method="post">
 <table>
