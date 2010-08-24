@@ -135,6 +135,7 @@ function gutscheinfeed_import(){
 	$table_name = $wpdb->prefix . "gutscheinfeed";
 	$gutscheinfeed_aktion=get_option('gutscheinfeed_aktion');
 	if($gutscheinfeed_aktion!=0){
+		$gutscheinfeed_user=get_option('gutscheinfeed_user');
 		$gutscheinfeed_category=get_option('gutscheinfeed_category');
 		$gutscheinfeed_titel=get_option('gutscheinfeed_titel');
 		$gutscheinfeed_text=get_option('gutscheinfeed_text');
@@ -160,7 +161,7 @@ function gutscheinfeed_import(){
   				if($gutscheinfeed_aktion==2){
 	  				$gutscheinfeed_post['post_status'] = 'publish';
   				}
-  				$gutscheinfeed_post['post_author'] = 1;
+  				$gutscheinfeed_post['post_author'] = $gutscheinfeed_user;
   				$gutscheinfeed_post['post_category'] = array($gutscheinfeed_category);
   				$post_id=wp_insert_post($gutscheinfeed_post);
 				update_post_meta($post_id, 'gutscheinfeed_ablauf', $item["ende"]);
