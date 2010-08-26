@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.0
+Version: 1.1
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -101,6 +101,7 @@ function gutscheinfeed_link($id,$anbieter){
 }
 
 function gutscheinfeed_replace($item,$text){
+	global $wpdb;
 	$link=gutscheinfeed_link($item["gutscheinid"],$item["anbieter"]);
 	$anbieter=$item["anbieter"];
 	$start=$item["start"];
@@ -108,6 +109,18 @@ function gutscheinfeed_replace($item,$text){
 	$wert=$item["wert"];
 	$mbw=$item["mbw"];
 	$description=$item["description"];
+	$table_name = $wpdb->prefix . "gutscheinfeed";
+	$dblinks=$result=$wpdb->get_row("select * from ".$table_name." where name='".$wpdb->escape($anbieter)."'");
+	$logo="";
+	if($dblinks){
+		if($dblinks->image!=""){
+			$logo="<img src=\"".$dblinks->image."\" border=\"0\">";
+			if($dblinks->link!=""){
+				$logo="<a href=\"".$dblinks->link."\" target=\"_blank\">".$logo."</a>";
+			}
+		}
+
+	}
 	$text=str_replace("{Anbieter}",$anbieter,$text);
 	$text=str_replace("{Wert}",$wert,$text);
 	$text=str_replace("{Bemerkung}",$description,$text);
@@ -127,6 +140,7 @@ function gutscheinfeed_replace($item,$text){
 	}else{
 		$text=str_replace("{Mindestbestellwert|".$temp[1]."|".$temp[2]."}","",$text);
 	}
+	$text=str_replace("{Logo}",$logo,$text);
 	return $text;
 }
 
@@ -197,17 +211,44 @@ function gutscheinfeed_register_mysettings() {
 function gutscheinfeed_redirects_page(){
 global $wpdb;
 $table_name = $wpdb->prefix . "gutscheinfeed";
-if($_POST){
+if($_POST["counter"]>0){
 	for($i=0;$i<$_POST["counter"];$i++){
 		if($_POST["id_".$i]!=""){
 			$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link_".$i])."',image='".$wpdb->escape($_POST["logo_".$i])."' where id='".$wpdb->escape($_POST["id_".$i])."'");	
 		}
 	}
 }
+if($_POST["edited"]>0){
+	$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link"])."',image='".$wpdb->escape($_POST["logo"])."' where id='".$wpdb->escape($_POST["edited"])."'");	
+}
 ?>	
 <div class="wrap">
 <h2>Gutscheinfeed Weiterleitungen</h2>
+<?php
+if($_POST["edit"]!=""){
+	$result=$wpdb->get_row("select * from ".$table_name." where id='".$wpdb->escape($_POST["edit"])."'");
+	if($result){
+		echo "<h3>Bearbeiten</h3><form method=\"post\"><input type=\"hidden\" name=\"edited\" value=\"".$result->id."\"><table>";
+		echo "<tr><td>Anbieter</td><td>".$result->name."</td></tr>";
+		echo "<tr><td>Link</td><td><input type=\"text\" name=\"link\" value=\"".$result->link."\"></td></tr>";
+		echo "<tr><td>Logo</td><td><input type=\"text\" name=\"link\" value=\"".$result->logo."\"></td></tr>";
+		echo "</table><input type=\"submit\" value=\"Speichern\"></form>";	
+	}
+}else{
+?>
 <p>Damit Sie mit dem Gutscheinfeed.com Plugin Geld verdienen, müssen Sie hier Affiliate-Links für die jeweiligen Anbieter hinterlegen. Beim Einlösen eines Gutscheins wird zu etwa 80% der von Ihnen hinterlegte Link verwendet, falls kein Link hinterlegt ist wird automatisch die Weiterleitung über Gutscheinfeed.com veranlaßt.</p>
+<?php
+if($_POST["suche"]!=""){
+	$results=$wpdb->get_results("select * from ".$table_name." where name like ('%".$wpdb->escape($_POST["suche"])."%')");
+	if($results){
+		echo "<h3>Suchergebnisse</h3><table>";
+		foreach ($results as $result){
+			echo "<tr><td>".$result->name."</td><td>".$result->link."</td><td>".$result->logo."</td><td><form method=\"post\"><input type=\"hidden\" name=\"edit\" value=\"".$result->id."\"><input type=\"submit\" value=\"Bearbeiten\"></form></td></tr>";	
+		}
+		echo "</table>";	
+	}
+}
+?>
 <h3>Anbieter bei denen noch kein Link hinterlegt ist:</h3>
 <form method="post">
 <table>
@@ -224,13 +265,29 @@ foreach ($todos as $todo) {
 <input type="hidden" name="counter" value="<?php echo $counter; ?>">
 <input type="submit" value="Speichern">
 </form>
+<h3>Anbieter suchen:</h3>
+<p>Falls Sie den Link oder das Logo eines Anbieters ändern möchten, können Sie hier nach dem Anbieter suchen und die Daten anschließend bearbeiten</p>
+<form method="post">
+<input type="text" name="suche">
+<input type="submit" value="Suchen">
+</form>
+<?php } ?>
 </div>
 <?php	
 }
 
 function gutscheinfeed_settings_page() {
+if($_POST["aktion"]="einlesen"){
+	gutscheinfeed_import();
+}
 ?>
 <div class="wrap">
+<h2>Gutscheinfeed einlesen</h2>
+Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn Besucher auf Ihre Seite kommen, wenn Sie jetzt Gutscheine manuell importieren möchten klicken Sie bitte auf Gutscheine einlesen.<br />
+<form method="post">
+<input type="hidden" name="aktion" value="einlesen" ?>
+<input type="submit" value="Gutscheine einlesen">
+</form>
 <h2>Gutscheinfeed Einstellungen</h2>
 <form method="post" action="options.php">
     <?php settings_fields( 'gutscheinfeed-settings-group' ); ?>
@@ -317,6 +374,7 @@ function gutscheinfeed_settings_page() {
         <tr valign="top">
         <td colspan="2">Geben Sie die Textvorlage für neue Gutscheinbeiträge ein, folgende Platzhalter stehen zur Verfügung:<br /><br />
         {Anbieter} - Gutscheinanbieter<br />
+        {Logo} - Logo des Gutscheinanbieters (falls hinterlegt) - wird automatisch verlinkt<br />
         {Wert} - Gutscheinwert (Euro oder Prozent)<br />
         {Ablaufdatum|gültig bis|}<br /> 
         {Mindestbestellwert|gültig ab|Warenwert} - Mindesbestellwert für diesen Gutschein mit Text (wird nicht angezeigt wenn kein MBW)<br />
@@ -330,7 +388,9 @@ function gutscheinfeed_settings_page() {
         </tr>
         <tr valign="top">
         <th scope="row">Beitragstext</th>
-        <td><textarea name="gutscheinfeed_text" style="width:400px;height:300px;float:left"><?php echo get_option('gutscheinfeed_text'); ?></textarea>Mit diesem Gutschein sparen Sie {Wert} bei Ihrem Einkauf bei {Anbieter}.<br /> 
+        <td><textarea name="gutscheinfeed_text" style="width:400px;height:300px;float:left"><?php echo get_option('gutscheinfeed_text'); ?></textarea>
+        {Logo}<br /> 
+        Mit diesem Gutschein sparen Sie {Wert} bei Ihrem Einkauf bei {Anbieter}.<br /> 
 {Ablaufdatum|Der Gutschein kann bis zum|eingelöst werden.}<br />        
 {Mindestbestellwert|Der Gutschein ist gültig ab|Mindestbestellwert.}<br /> 
 {Bemerkung}<br /> 
