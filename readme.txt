@@ -41,6 +41,9 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 
 == Changelog ==
 
+= 1.2 =
+* Bugfixes
+
 = 1.1 =
 * change affiliate links
 * logo is now available

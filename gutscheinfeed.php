@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.1
+Version: 1.2
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -60,13 +60,14 @@ function gutscheinfeed_redirect(){
 		$is_gutschein=true;
 	}
 	if($is_gutschein){
+		$anbieter=str_replace("_",".",$anbieter);
 		global $wpdb;
 		$table_name = $wpdb->prefix . "gutscheinfeed";
 		$link=$wpdb->get_var("select link from ".$table_name." where name='".$wpdb->escape($anbieter)."'");
 		include_once(ABSPATH.WPINC.'/class-snoopy.php');
 		$snoopy = new Snoopy();
 		$snoopy->maxredirs=0;
-		$result = $snoopy->fetch('http://www.gutscheinfeed.com/gutschein.php?id='.$gutscheinid.'&link='.urlencode($link)."&referer=".urlencode(substr(get_bloginfo("home"),7)));
+		$result = $snoopy->fetch('http://www.gutscheinfeed.com/gutschein.php?id='.$gutscheinid.'&link='.urlencode(str_replace(".","___",$link))."&referer=".urlencode(str_replace(".","_",substr(get_bloginfo("home"),7))));
 		if($result) {
 			echo $snoopy->results;
 		} else {
@@ -92,6 +93,7 @@ function gutscheinfeed_link($id,$anbieter){
 	if(substr($home,-1)=="/"){
 		$home=substr($home,0,-1);
 	}
+	$anbieter=str_replace(".","_",$anbieter);
 	if($wp_rewrite->using_mod_rewrite_permalinks()){
 		$link=$home.get_option('gutscheinfeed_url','/gutschein_einloesen/').$id."_".$anbieter;
 	}else{
