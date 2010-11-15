@@ -6,7 +6,7 @@ Requires at least: 2.0.2
 Tested up to: 3.0.1
 Stable tag: trunk
 
-Aktuelle Gutscheine in Ihrem WordPress-Blog - Gutscheinfeed.com Plugin provides coupons for use on your website, currently only german online shops are listed.
+Aktuelle Gutscheine in Ihrem WordPress-Blog - Gutscheinfeed.com Plugin provides coupons for use on your website (currently only german online shops).
 
 == Description ==
 
@@ -40,6 +40,9 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 == Screenshots ==
 
 == Changelog ==
+
+= 1.3 =
+* Bugfix
 
 = 1.2 =
 * Bugfixes

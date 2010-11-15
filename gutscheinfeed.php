@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.2
+Version: 1.3
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -127,7 +127,7 @@ function gutscheinfeed_replace($item,$text){
 	$text=str_replace("{Wert}",$wert,$text);
 	$text=str_replace("{Bemerkung}",$description,$text);
 	$text=str_replace("{Link}",$link,$text);
-	$temp=explode(" ",$start);
+	$temp=explode(" ",$ende);
 	$temp=explode("-",$temp[0]);
 	$ablaufdatum=$temp[2].".".$temp[1].".".$temp[0];
 	$temp=explode("{Ablaufdatum",$text);
