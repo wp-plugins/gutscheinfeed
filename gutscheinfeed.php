@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.3
+Version: 1.4
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -158,7 +158,7 @@ function gutscheinfeed_import(){
 	}
 	$gutscheinfeed_lastid=get_option("gutscheinfeed_lastid");
 	include_once(ABSPATH.WPINC.'/rss.php');
-	$rss = fetch_rss("http://www.gutscheinfeed.com/gutscheinfeed.php?hjgjhg");
+	$rss = fetch_rss("http://www.gutscheinfeed.com/gutscheinfeed.php");
 	$highid=0;
 	foreach($rss->items as $item){
 		if($item["anbieter"]!=""){
@@ -182,16 +182,14 @@ function gutscheinfeed_import(){
   				$post_id=wp_insert_post($gutscheinfeed_post);
 				update_post_meta($post_id, 'gutscheinfeed_ablauf', $item["ende"]);
 			}
-
-		}
-		if($highid<$item["gutscheinid"]){
-			$highid=$item["gutscheinid"];
+			if($highid<$item["gutscheinid"]){
+				$highid=$item["gutscheinid"];
+			}
 		}
 	}
 	if($highid>0){
-	update_option("gutscheinfeed_lastid",$highid);
-}
-
+		update_option("gutscheinfeed_lastid",$highid);
+	}
 }
 
 function gutscheinfeed_create_menu() {
@@ -239,6 +237,9 @@ if($_POST["edit"]!=""){
 }else{
 ?>
 <p>Damit Sie mit dem Gutscheinfeed.com Plugin Geld verdienen, müssen Sie hier Affiliate-Links für die jeweiligen Anbieter hinterlegen. Beim Einlösen eines Gutscheins wird zu etwa 80% der von Ihnen hinterlegte Link verwendet, falls kein Link hinterlegt ist wird automatisch die Weiterleitung über Gutscheinfeed.com veranlaßt.</p>
+<p>Entsprechende Affiliate Links finden Sie bei diesen Netzwerken:<br />
+<a href="http://www.adcell.de/click.php?bid=50-40645" target="_blank"><img src="http://www.adcell.de/img.php?bid=50-40645" alt="ADCELL" border="0" height="60" width="120"></a>&nbsp;<a href="http://klick.affiliwelt.net/klick.php?bannerid=34652&amp;pid=31317&amp;prid=289" target="_blank"><img src="http://view-affiliwelt.net/b34652_31317_289.gif" alt="affiliwelt.net - Gib mir 5" border="0" height="62" width="124"></a>&nbsp;<a href="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.html" target="_blank"><img src="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.img" alt="belboon Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://clix.superclix.de/cgi-bin/clix.cgi?id=efpemuc&amp;pp=1&amp;linknr=50872" target="_blank"><img src="http://clix.superclix.de/images/logo/Logo_SuperClix_120x60.jpg" alt="SuperClix - das Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://www.zanox-affiliate.de/ppc/?16400571C1427964872T"><img src="http://www.zanox-affiliate.de/ppv/?16400571C1427964872" alt="Werden Sie jetzt Partner von zanox!" align="bottom" border="0" height="38" hspace="1" width="120"></a>
+</p>
 <?php
 if($_POST["suche"]!=""){
 	$results=$wpdb->get_results("select * from ".$table_name." where name like ('%".$wpdb->escape($_POST["suche"])."%')");
@@ -279,13 +280,19 @@ foreach ($todos as $todo) {
 }
 
 function gutscheinfeed_settings_page() {
-if($_POST["aktion"]="einlesen"){
-	gutscheinfeed_import();
-}
 ?>
 <div class="wrap">
 <h2>Gutscheinfeed einlesen</h2>
 Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn Besucher auf Ihre Seite kommen, wenn Sie jetzt Gutscheine manuell importieren möchten klicken Sie bitte auf Gutscheine einlesen.<br />
+<?php
+if($_POST["aktion"]=="einlesen"){
+	if(get_option('gutscheinfeed_aktion')==0){
+		echo "<strong>Bitte w&auml;hlen Sie erst eine Aktion f&uuml;r neue Gutscheine aus (Entwurf oder Publizieren)</strong>";
+	}else{
+		gutscheinfeed_import();
+	}
+}
+?>
 <form method="post">
 <input type="hidden" name="aktion" value="einlesen" ?>
 <input type="submit" value="Gutscheine einlesen">
@@ -339,7 +346,7 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         <option value="">Bitte auswählen</option>
         <?php
         $categories=get_categories('hide_empty=0');
-        $selected=get_option('gutscheinfeed_category');
+        $selected=get_option('gutscheinfeed_category','1');
         foreach($categories as $category){
         	if($selected==$category->cat_ID){
         		echo "<option value=\"".$category->cat_ID."\" selected>".$category->cat_name."</option>";	
@@ -359,7 +366,7 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         <td><select name="gutscheinfeed_user" style="width:200px;">
         <option value="">Bitte auswählen</option>
         <?php
-        $selected=get_option('gutscheinfeed_user');
+        $selected=get_option('gutscheinfeed_user','1');
         global $wpdb;
         $users = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->users;"));
 		foreach($users as $user){
@@ -386,11 +393,11 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         </tr>
         <tr valign="top">
         <th scope="row">Beitragstitel</th>
-        <td><input type="text" name="gutscheinfeed_titel" value="<?php echo get_option('gutscheinfeed_titel'); ?>" style="width:400px;" />({Wert} Gutschein bei {Anbieter})</td>
+        <td><input type="text" name="gutscheinfeed_titel" value="<?php echo get_option('gutscheinfeed_titel',"{Wert} Gutschein bei {Anbieter}"); ?>" style="width:400px;" />({Wert} Gutschein bei {Anbieter})</td>
         </tr>
         <tr valign="top">
         <th scope="row">Beitragstext</th>
-        <td><textarea name="gutscheinfeed_text" style="width:400px;height:300px;float:left"><?php echo get_option('gutscheinfeed_text'); ?></textarea>
+        <td><textarea name="gutscheinfeed_text" style="width:400px;height:300px;float:left"><?php echo get_option('gutscheinfeed_text',"{Logo}\r\nMit diesem Gutschein sparen Sie {Wert} bei Ihrem Einkauf bei {Anbieter}.\r\n{Ablaufdatum|Der Gutschein kann bis zum|eingelöst werden.}\r\n{Mindestbestellwert|Der Gutschein ist gültig ab|Mindestbestellwert.}\r\n{Bemerkung}\r\n&lt;a href=\"{Link}\" target=\"_blank\"&gt;Hier klicken um den Gutschein bei {Anbieter} einzulösen&lt;/a&gt;"); ?></textarea>
         {Logo}<br /> 
         Mit diesem Gutschein sparen Sie {Wert} bei Ihrem Einkauf bei {Anbieter}.<br /> 
 {Ablaufdatum|Der Gutschein kann bis zum|eingelöst werden.}<br />        

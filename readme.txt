@@ -3,10 +3,10 @@ Contributors: Florian Peez
 Donate link: http://gutscheinfeed.com/
 Tags: Gutscheine, Coupons, Gutscheinblog, Gutscheinfeed
 Requires at least: 2.0.2
-Tested up to: 3.0.1
+Tested up to: 3.0.4
 Stable tag: trunk
 
-Aktuelle Gutscheine in Ihrem WordPress-Blog - Gutscheinfeed.com Plugin provides coupons for use on your website (currently only german online shops).
+Aktuelle Gutscheine in Ihrem WordPress-Blog - Gutscheinfeed.com Plugin coupons for your website (currently only german online shops).
 
 == Description ==
 
@@ -40,6 +40,11 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 == Screenshots ==
 
 == Changelog ==
+
+= 1.4 =
+* easier start
+* Bugfixes
+* Links to affiliate networks
 
 = 1.3 =
 * Bugfix
