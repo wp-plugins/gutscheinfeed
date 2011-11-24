@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.4
+Version: 1.5
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -44,6 +44,12 @@ function gutscheinfeed_expired_redirect() {
     }
 }  
 function gutscheinfeed_redirect(){
+	if($_GET["gutscheinfeed_cron"]!=""){
+		if($_GET["gutscheinfeed_cron"]==get_option('gutscheinfeed_token','')){
+			gutscheinfeed_import();
+			exit;
+		}
+	}
 	$urlpart=get_option('gutscheinfeed_url','/gutschein_einloesen/');
 	$is_gutschein=false;
 	if(strpos($_SERVER["REQUEST_URI"],$urlpart)!==false){
@@ -79,10 +85,12 @@ function gutscheinfeed_redirect(){
 
 function gutscheinfeed_cron(){
 	if($_SERVER["HTTP_REFERER"]!=""){
-		$gutscheinfeed_lastcron=get_option("gutscheinfeed_lastcron");
-		if($gutscheinfeed_lastcron<(time()-3600)){
-			update_option("gutscheinfeed_lastcron",time());
-			gutscheinfeed_import();
+		if(get_option('gutscheinfeed_token','')==""){
+			$gutscheinfeed_lastcron=get_option("gutscheinfeed_lastcron");
+			if($gutscheinfeed_lastcron<(time()-3600)){
+				update_option("gutscheinfeed_lastcron",time());
+				gutscheinfeed_import();
+			}
 		}
 	}
 }
@@ -182,14 +190,16 @@ function gutscheinfeed_import(){
   				$post_id=wp_insert_post($gutscheinfeed_post);
 				update_post_meta($post_id, 'gutscheinfeed_ablauf', $item["ende"]);
 			}
-			if($highid<$item["gutscheinid"]){
-				$highid=$item["gutscheinid"];
-			}
+
+		}
+		if($highid<$item["gutscheinid"]){
+			$highid=$item["gutscheinid"];
 		}
 	}
 	if($highid>0){
-		update_option("gutscheinfeed_lastid",$highid);
-	}
+	update_option("gutscheinfeed_lastid",$highid);
+}
+
 }
 
 function gutscheinfeed_create_menu() {
@@ -206,21 +216,22 @@ function gutscheinfeed_register_mysettings() {
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_text' );
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_url' );
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_redirecturl' );
+	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_token' );
 }
 
 function gutscheinfeed_redirects_page(){
-global $wpdb;
-$table_name = $wpdb->prefix . "gutscheinfeed";
-if($_POST["counter"]>0){
-	for($i=0;$i<$_POST["counter"];$i++){
-		if($_POST["id_".$i]!=""){
-			$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link_".$i])."',image='".$wpdb->escape($_POST["logo_".$i])."' where id='".$wpdb->escape($_POST["id_".$i])."'");	
+	global $wpdb;
+	$table_name = $wpdb->prefix . "gutscheinfeed";
+	if($_POST["counter"]>0){
+		for($i=0;$i<$_POST["counter"];$i++){
+			if($_POST["id_".$i]!=""){
+				$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link_".$i])."',image='".$wpdb->escape($_POST["logo_".$i])."' where id='".$wpdb->escape($_POST["id_".$i])."'");	
+			}
 		}
 	}
-}
-if($_POST["edited"]>0){
-	$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link"])."',image='".$wpdb->escape($_POST["logo"])."' where id='".$wpdb->escape($_POST["edited"])."'");	
-}
+	if($_POST["edited"]>0){
+		$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link"])."',image='".$wpdb->escape($_POST["logo"])."' where id='".$wpdb->escape($_POST["edited"])."'");	
+	}
 ?>	
 <div class="wrap">
 <h2>Gutscheinfeed Weiterleitungen</h2>
@@ -280,11 +291,6 @@ foreach ($todos as $todo) {
 }
 
 function gutscheinfeed_settings_page() {
-?>
-<div class="wrap">
-<h2>Gutscheinfeed einlesen</h2>
-Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn Besucher auf Ihre Seite kommen, wenn Sie jetzt Gutscheine manuell importieren möchten klicken Sie bitte auf Gutscheine einlesen.<br />
-<?php
 if($_POST["aktion"]=="einlesen"){
 	if(get_option('gutscheinfeed_aktion')==0){
 		echo "<strong>Bitte w&auml;hlen Sie erst eine Aktion f&uuml;r neue Gutscheine aus (Entwurf oder Publizieren)</strong>";
@@ -293,6 +299,9 @@ if($_POST["aktion"]=="einlesen"){
 	}
 }
 ?>
+<div class="wrap">
+<h2>Gutscheinfeed einlesen</h2>
+Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn Besucher auf Ihre Seite kommen, wenn Sie jetzt Gutscheine manuell importieren möchten klicken Sie bitte auf Gutscheine einlesen. Alternativ können Sie einen Cronjob für den Import verwenden, weitere Informationen finden Sie beim Cronjob Token.<br />
 <form method="post">
 <input type="hidden" name="aktion" value="einlesen" ?>
 <input type="submit" value="Gutscheine einlesen">
@@ -346,7 +355,7 @@ if($_POST["aktion"]=="einlesen"){
         <option value="">Bitte auswählen</option>
         <?php
         $categories=get_categories('hide_empty=0');
-        $selected=get_option('gutscheinfeed_category','1');
+        $selected=get_option('gutscheinfeed_category');
         foreach($categories as $category){
         	if($selected==$category->cat_ID){
         		echo "<option value=\"".$category->cat_ID."\" selected>".$category->cat_name."</option>";	
@@ -366,7 +375,7 @@ if($_POST["aktion"]=="einlesen"){
         <td><select name="gutscheinfeed_user" style="width:200px;">
         <option value="">Bitte auswählen</option>
         <?php
-        $selected=get_option('gutscheinfeed_user','1');
+        $selected=get_option('gutscheinfeed_user');
         global $wpdb;
         $users = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->users;"));
 		foreach($users as $user){
@@ -405,6 +414,29 @@ if($_POST["aktion"]=="einlesen"){
 {Bemerkung}<br /> 
 	&lt;a href="{Link}" target="_blank"&gt;Hier klicken um den Gutschein bei {Anbieter} einzulösen	&lt;/a&gt;</td>
         </tr>
+		<tr valign="top">
+        <td colspan="2">Legen Sie eine Token für den Cronjob fest, ist kein Token hinterlegt l&auml;uft der Import wenn Besucher auf die Seite kommen.</td>
+        </tr> 
+        <tr valign="top">
+        <th scope="row">Cronjob-Token</th>
+        <td><input type="text" name="gutscheinfeed_token" value="<?php echo get_option('gutscheinfeed_token',''); ?>" style="width:400px;" /></td>
+        </tr>
+		<?php 
+		$token=get_option('gutscheinfeed_token','');
+		if($token!=""){ 
+		$home=get_bloginfo("home");
+		if(substr($home,-1)=="/"){
+			$home=substr($home,0,-1);
+		}
+		$link=$home.'/index.php?gutscheinfeed_cron='.$token;
+		?>
+		<tr valign="top">
+        <td colspan="2">Automatischer Import deaktiviert, rufen Sie diese URL per Cronjob auf (stündlicher Import wird empfohlen):<br><?php echo $link;?></td>
+        </tr> 
+		<?php
+		}
+		?>
+
 
     </table>
     
