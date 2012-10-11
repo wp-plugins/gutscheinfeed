@@ -3,13 +3,13 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 1.5
+Version: 2.0
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
 
 global $gutscheinfeed_db_version;
-$gutscheinfeed_db_version = "1.0";
+$gutscheinfeed_db_version = "1.1";
 register_activation_hook(__FILE__,'gutscheinfeed_install');
 add_action('admin_menu', 'gutscheinfeed_create_menu');
 add_action('get_footer', 'gutscheinfeed_cron');
@@ -70,10 +70,20 @@ function gutscheinfeed_redirect(){
 		global $wpdb;
 		$table_name = $wpdb->prefix . "gutscheinfeed";
 		$link=$wpdb->get_var("select link from ".$table_name." where name='".$wpdb->escape($anbieter)."'");
+		if($link==""){
+			$bee5_key=get_option('gutscheinfeed_bee5_key','');
+			if($bee5_key!=""){
+				$link=$wpdb->get_var("select realurl from ".$table_name." where name='".$wpdb->escape($anbieter)."'");
+				if($link!=""){
+					$link="http://www.".$link;
+					$link="http://api.bee5.de/DevCreateAndRefer.php?a=v5V5I6xmwX&nid=".$bee5_key."&url=".$link;
+				}
+			}
+		}
 		include_once(ABSPATH.WPINC.'/class-snoopy.php');
 		$snoopy = new Snoopy();
 		$snoopy->maxredirs=0;
-		$result = $snoopy->fetch('http://www.gutscheinfeed.com/gutschein.php?id='.$gutscheinid.'&link='.urlencode(str_replace(".","___",$link))."&referer=".urlencode(str_replace(".","_",substr(get_bloginfo("home"),7))));
+		$result = $snoopy->fetch('http://www.gutscheinfeed.com/gutschein.php?id='.$gutscheinid.'&link='.urlencode($link)."&referer=".urlencode(str_replace(".","_",substr(get_bloginfo("home"),7))));
 		if($result) {
 			echo $snoopy->results;
 		} else {
@@ -171,7 +181,9 @@ function gutscheinfeed_import(){
 	foreach($rss->items as $item){
 		if($item["anbieter"]!=""){
 			if($wpdb->get_var("select count(id) from ".$table_name." where name='".$wpdb->escape($item["anbieter"])."'")==0){
-				$wpdb->query("insert into ".$table_name." (name) values ('".$wpdb->escape($item["anbieter"])."')");
+				$wpdb->query("insert into ".$table_name." (name,network,realurl) values ('".$wpdb->escape($item["anbieter"])."','".$wpdb->escape($item["netzwerk"])."','".$wpdb->escape($item["realurl"])."')");
+			}else{
+				$wpdb->query("update ".$table_name." set network= '".$wpdb->escape($item["netzwerk"])."',realurl='".$wpdb->escape($item["realurl"])."' where name='".$wpdb->escape($item["anbieter"])."'");
 			}	
 		}
 		if($gutscheinfeed_aktion!=0){
@@ -197,9 +209,8 @@ function gutscheinfeed_import(){
 		}
 	}
 	if($highid>0){
-	update_option("gutscheinfeed_lastid",$highid);
-}
-
+		update_option("gutscheinfeed_lastid",$highid);
+	}
 }
 
 function gutscheinfeed_create_menu() {
@@ -217,6 +228,7 @@ function gutscheinfeed_register_mysettings() {
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_url' );
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_redirecturl' );
 	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_token' );
+	register_setting( 'gutscheinfeed-settings-group', 'gutscheinfeed_bee5_key' );
 }
 
 function gutscheinfeed_redirects_page(){
@@ -249,7 +261,9 @@ if($_POST["edit"]!=""){
 ?>
 <p>Damit Sie mit dem Gutscheinfeed.com Plugin Geld verdienen, müssen Sie hier Affiliate-Links für die jeweiligen Anbieter hinterlegen. Beim Einlösen eines Gutscheins wird zu etwa 80% der von Ihnen hinterlegte Link verwendet, falls kein Link hinterlegt ist wird automatisch die Weiterleitung über Gutscheinfeed.com veranlaßt.</p>
 <p>Entsprechende Affiliate Links finden Sie bei diesen Netzwerken:<br />
-<a href="http://www.adcell.de/click.php?bid=50-40645" target="_blank"><img src="http://www.adcell.de/img.php?bid=50-40645" alt="ADCELL" border="0" height="60" width="120"></a>&nbsp;<a href="http://klick.affiliwelt.net/klick.php?bannerid=34652&amp;pid=31317&amp;prid=289" target="_blank"><img src="http://view-affiliwelt.net/b34652_31317_289.gif" alt="affiliwelt.net - Gib mir 5" border="0" height="62" width="124"></a>&nbsp;<a href="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.html" target="_blank"><img src="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.img" alt="belboon Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://clix.superclix.de/cgi-bin/clix.cgi?id=efpemuc&amp;pp=1&amp;linknr=50872" target="_blank"><img src="http://clix.superclix.de/images/logo/Logo_SuperClix_120x60.jpg" alt="SuperClix - das Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://www.zanox-affiliate.de/ppc/?16400571C1427964872T"><img src="http://www.zanox-affiliate.de/ppv/?16400571C1427964872" alt="Werden Sie jetzt Partner von zanox!" align="bottom" border="0" height="38" hspace="1" width="120"></a>
+<a href="http://www.adcell.de/click.php?bid=50-40645" target="_blank"><img src="http://www.adcell.de/img.php?bid=50-40645" alt="ADCELL" border="0" height="60" width="120"></a>&nbsp;<a href="http://klick.affiliwelt.net/klick.php?bannerid=2747&pid=31317&prid=283" target="_blank"><img src="http://view-affiliwelt.net/b2747_31317_283.gif" alt="Affiliwelt" width="130" height="39" border="0" /></a>&nbsp;<a href="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.html" target="_blank"><img src="http://www1.belboon.de/adtracking/02cb800823f90004db00019f.img" alt="belboon Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://clix.superclix.de/cgi-bin/clix.cgi?id=efpemuc&amp;pp=1&amp;linknr=50872" target="_blank"><img src="http://clix.superclix.de/images/logo/Logo_SuperClix_120x60.jpg" alt="SuperClix - das Partnerprogramm-Netzwerk" border="0" height="60" width="120"></a>&nbsp;<a href="http://www.zanox-affiliate.de/ppc/?16400571C1427964872T"><img src="http://www.zanox-affiliate.de/ppv/?16400571C1427964872" alt="Werden Sie jetzt Partner von zanox!" align="bottom" border="0" height="38" hspace="1" width="120"></a>
+<br />
+Als Anhaltspunkt sehen Sie bei welchem Netzwerk ein Anbieter vertreten ist, viele Anbieter nutzen allerdings mehrere Netzwerke daher dient diese Angabe nur als Hinweis.
 </p>
 <?php
 if($_POST["suche"]!=""){
@@ -266,12 +280,12 @@ if($_POST["suche"]!=""){
 <h3>Anbieter bei denen noch kein Link hinterlegt ist:</h3>
 <form method="post">
 <table>
-<tr><th>Anbieter</th><th>Link</th><th>Logo (optional)</th></tr>
+<tr><th>Anbieter</th><th>zu finden bei</th><th>Link</th><th>Logo (optional)</th></tr>
 <?php
 $todos = $wpdb->get_results("select * FROM $table_name WHERE link = ''");
 $counter=0;
 foreach ($todos as $todo) {
-	echo "<tr><td>".$todo->name."</td><td><input type=\"hidden\" name=\"id_".$counter."\" value=\"".$todo->id."\"><input type=\"text\" name=\"link_".$counter."\"></td><td><input type=\"text\" name=\"logo_".$counter."\"></td></tr>";
+	echo "<tr><td>".$todo->name."</td><td>".$todo->network."</td><td><input type=\"hidden\" name=\"id_".$counter."\" value=\"".$todo->id."\"><input type=\"text\" name=\"link_".$counter."\"></td><td><input type=\"text\" name=\"logo_".$counter."\"></td></tr>";
 	$counter++;
 }
 ?>
@@ -435,9 +449,16 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         </tr> 
 		<?php
 		}
+		if(false){
 		?>
-
-
+		<tr valign="top">
+        <td colspan="2">Wenn Sie <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> für die Weiterleitung verwenden möchten tragen Sie hier bitte die Nutzungs-ID (nid) ein.</td>
+        </tr> 
+        <tr valign="top">
+        <th scope="row">Bee5.de Nutzungs-ID (nid)</th>
+        <td><input type="text" name="gutscheinfeed_bee5_key" value="<?php echo get_option('gutscheinfeed_bee5_key',''); ?>" style="width:400px;" /></td>
+		</tr>
+		<?php } ?>
     </table>
     
     <p class="submit">
@@ -455,12 +476,14 @@ function gutscheinfeed_install () {
    global $wpdb;
    global $gutscheinfeed_db_version;
    $table_name = $wpdb->prefix . "gutscheinfeed";
-   if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+   
       $sql = "CREATE TABLE " . $table_name . " (
 	  id mediumint(9) NOT NULL AUTO_INCREMENT,
 	  name varchar(255) NOT NULL,
 	  link varchar(255) NOT NULL,
 	  image VARCHAR(255) NOT NULL,
+	  network VARCHAR(255) NOT NULL,
+	  realurl VARCHAR(255) NOT NULL,
 	  UNIQUE KEY id (id)
 	);";
 
@@ -469,7 +492,7 @@ function gutscheinfeed_install () {
 
       add_option("gutscheinfeed_db_version", $gutscheinfeed_db_version);
 
-   }
+   
 }
 
 
