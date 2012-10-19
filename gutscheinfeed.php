@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 2.0
+Version: 2.1
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -449,7 +449,6 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         </tr> 
 		<?php
 		}
-		if(false){
 		?>
 		<tr valign="top">
         <td colspan="2">Wenn Sie <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> für die Weiterleitung verwenden möchten tragen Sie hier bitte die Nutzungs-ID (nid) ein.</td>
@@ -458,7 +457,6 @@ Der Gutscheinfeed wird automatisch in regelmäßigen Abständen eingelesen wenn 
         <th scope="row">Bee5.de Nutzungs-ID (nid)</th>
         <td><input type="text" name="gutscheinfeed_bee5_key" value="<?php echo get_option('gutscheinfeed_bee5_key',''); ?>" style="width:400px;" /></td>
 		</tr>
-		<?php } ?>
     </table>
     
     <p class="submit">

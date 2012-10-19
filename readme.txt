@@ -18,6 +18,8 @@ Gutscheine werden wahlweise als publizierter Blogpost oder als Entwurf zur weite
 
 Mit dem Gutscheinfeed.com Plugin verdienen Sie Geld mit Ihrer Webseite, hinterlegen Sie einfach Affiliate Links zum entsprechenden Anbieter (20 Prozent der Klicks sowie Links zu Anbietern bei denen Sie keinen Link hinterlegt haben werden ueber Gutscheinfeed.com weitergeleitet).
 
+Alternativ können Sie <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> nutzen, damit werden Links automatisch durch entsprechende Affiliate-Links ersetzt und Sie müssen sich um nichts mehr kümmern, einfach Bee5.de Nutzungs-ID im Plugin hinterlegen.
+
 Das Gutscheinfeed.com Plugin listet im Moment nur deutsche Online-Shops, weitere Laender werden aber folgen.
 
 
@@ -28,6 +30,8 @@ If you run an Coupon Blog or Gutscheinblog you know how hard it is to always kee
 You can have new coupons published as blogpost or as draft for later editing. Gutscheinfeed.com plugin also features a sidebar widget with latest coupons you can use on a widgetized WordPress Theme.
 
 Earn money with Gutscheinfeed.com plugin by using your own affiliate links for shops (20 percent of clicks and clicks to shop where you have no affiliate link are redirected through Gutscheinfeed.com)
+
+You may also use <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> which automatically ads redirects to many coupons.
 
 Gutscheinfeed.com Plugin currently only supports german Online Shops but will be extended to other countries.
 
@@ -40,6 +44,9 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 == Screenshots ==
 
 == Changelog ==
+
+= 2.1 =
+* Integration of <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> API which automatically inserts redirects for many coupons
 
 = 2.0 =
 * smaller enhancements
