@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 2.1
+Version: 2.2
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -32,7 +32,8 @@ function gutscheinfeed_expired_redirect() {
     global $post;
     if(is_single()) {
         $ablauf=get_post_meta($post->ID, 'gutscheinfeed_ablauf',true);
-        $dt=explode(" ",$ablauf);
+        if($ablauf!=""){
+	$dt=explode(" ",$ablauf);
         $dd=explode("-",$dt[0]);
         $dh=explode(":",$dt[1]);
         $ts=mktime($dh[0],$dh[1],$dh[2],$dd[1],$dd[2],$dd[0]);
@@ -41,6 +42,7 @@ function gutscheinfeed_expired_redirect() {
         	header("Location: ".$redir);
         	exit;
         }
+	}
     }
 }  
 function gutscheinfeed_redirect(){

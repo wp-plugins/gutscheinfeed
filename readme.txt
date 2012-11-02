@@ -45,6 +45,9 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 
 == Changelog ==
 
+= 2.2 =
+* fixed a bug with redirecting
+
 = 2.1 =
 * Integration of <a href="http://bee5.de/bee3i2pPMJI" target="_blank">Bee5.de</a> API which automatically inserts redirects for many coupons
 
