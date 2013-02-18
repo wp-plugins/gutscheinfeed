@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 2.2
+Version: 2.3
 Author: Florian Peez
 Author URI: http://www.gutscheinfeed.com
 */
@@ -60,11 +60,14 @@ function gutscheinfeed_redirect(){
 		$temp=explode("_",urldecode($temp[0]));
 		$gutscheinid=$temp[0];
 		$anbieter=$temp[1];
+		if($temp[2]!=""){
+			$anbieter.=".".$temp[2];
+		}
 		$is_gutschein=true;
 	}
 	if($_GET["gutscheineinloesen"]!=""){
 		$gutscheinid=$_GET["gutscheineinloesen"];
-		$anbieter=$_GET["anbieter"];
+		$anbieter=str_replace("_",".",$_GET["anbieter"]);
 		$is_gutschein=true;
 	}
 	if($is_gutschein){
