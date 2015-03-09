@@ -3,8 +3,8 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 2.3
-Author: Florian Peez
+Version: 2.4
+Author: Bastian Schneider
 Author URI: http://www.gutscheinfeed.com
 */
 
@@ -242,6 +242,7 @@ function gutscheinfeed_redirects_page(){
 	if($_POST["counter"]>0){
 		for($i=0;$i<$_POST["counter"];$i++){
 			if($_POST["id_".$i]!=""){
+				echo "test";
 				$wpdb->query("update ".$table_name." set link='".$wpdb->escape($_POST["link_".$i])."',image='".$wpdb->escape($_POST["logo_".$i])."' where id='".$wpdb->escape($_POST["id_".$i])."'");	
 			}
 		}
@@ -259,7 +260,7 @@ if($_POST["edit"]!=""){
 		echo "<h3>Bearbeiten</h3><form method=\"post\"><input type=\"hidden\" name=\"edited\" value=\"".$result->id."\"><table>";
 		echo "<tr><td>Anbieter</td><td>".$result->name."</td></tr>";
 		echo "<tr><td>Link</td><td><input type=\"text\" name=\"link\" value=\"".$result->link."\"></td></tr>";
-		echo "<tr><td>Logo</td><td><input type=\"text\" name=\"link\" value=\"".$result->logo."\"></td></tr>";
+		echo "<tr><td>Logo</td><td><input type=\"text\" name=\"logo\" value=\"".$result->logo."\"></td></tr>";
 		echo "</table><input type=\"submit\" value=\"Speichern\"></form>";	
 	}
 }else{
