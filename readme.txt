@@ -45,6 +45,9 @@ Simply install the plugin and adjust settings on the Gutscheinfeed Settings Page
 
 == Changelog ==
 
+= 2.5 =
+* fixed a php warning
+
 = 2.4 =
 * fixed a bug custom logos
 

@@ -3,7 +3,7 @@
 Plugin Name: Gutscheinfeed
 Plugin URI: http://www.gutscheinfeed.com
 Description: Gutscheinfeed für Ihr Wordpress Blog.
-Version: 2.4
+Version: 2.5
 Author: Bastian Schneider
 Author URI: http://www.gutscheinfeed.com
 */
@@ -260,7 +260,7 @@ if($_POST["edit"]!=""){
 		echo "<h3>Bearbeiten</h3><form method=\"post\"><input type=\"hidden\" name=\"edited\" value=\"".$result->id."\"><table>";
 		echo "<tr><td>Anbieter</td><td>".$result->name."</td></tr>";
 		echo "<tr><td>Link</td><td><input type=\"text\" name=\"link\" value=\"".$result->link."\"></td></tr>";
-		echo "<tr><td>Logo</td><td><input type=\"text\" name=\"logo\" value=\"".$result->logo."\"></td></tr>";
+		echo "<tr><td>Logo</td><td><input type=\"text\" name=\"logo\" value=\"".$result->image."\"></td></tr>";
 		echo "</table><input type=\"submit\" value=\"Speichern\"></form>";	
 	}
 }else{
